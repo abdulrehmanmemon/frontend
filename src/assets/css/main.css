@@ -1,0 +1,13 @@
+@import "_root.css";
+
+/* Custom Styling */
+@import "custom/_animation.css";
+@import "custom/_components.css";
+@import "custom/_forms.css";
+@import "custom/_layout.css";
+
+/* Daisyui Overriding */
+@import "_override.css";
+
+/* Plugin Overriding */
+@import "plugins/_apexcharts.css";

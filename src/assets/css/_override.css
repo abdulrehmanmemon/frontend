@@ -1,0 +1,3 @@
+.radio:disabled:not(:checked) {
+    opacity: 0.6;
+}
