@@ -40,7 +40,7 @@ export default function Layout() {
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50">
+        <main className="flex-1 overflow-y-auto bg-white">
           <Routes>
             <Route path="/" element={<Navigate to="/actions" />} />
             <Route path="/home" element={<Home />} />

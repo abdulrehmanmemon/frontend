@@ -454,16 +454,6 @@ const FXExposureTemplate = () => {
       [nodeId]: { ...data}
     };
     
-    // Force a re-render with the new data
-    setTimeout(() => {
-      setPreviousFormData(prevFormData => {
-        if (!prevFormData || !_.isEqual(prevFormData[nodeId], newFormData[nodeId])) {
-          console.log(`Node data changed for ${nodeId}`);
-          return newFormData;
-        }
-        return prevFormData;
-      });
-    }, 0);
     
     return newDetails;
   });

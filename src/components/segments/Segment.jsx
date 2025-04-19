@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState} from "react";
 import { supabaseSegments } from "../../helpers/supabaseClient.js";
 import { useNavigate } from "react-router-dom";
-
+import React from "react";
 import Button from "@/components/daisyui/Button/Button";
 import Input from "@/components/daisyui/Input/Input";
 import Badge from "@/components/daisyui/Badge/Badge";
 import Alert from "@/components/daisyui/Alert/Alert";
 import Table from "@/components/daisyui/Table/Table";
 import TableRow from "@/components/daisyui/Table/TableRow";
+import { Icon } from "../Icon";
 
 export default function Segments() {
   const [segments, setSegments] = useState([]);
@@ -16,12 +17,67 @@ export default function Segments() {
   const [selectedStatus, setSelectedStatus] = useState("Active");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Dropdown state for actions menu
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [totalCount, setTotalCount] = useState(0);
 
   const navigate = useNavigate();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      setOpenDropdownId(null);
+    }
+    if (openDropdownId !== null) {
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
+    }
+  }, [openDropdownId]);
+
+
+  const handleArchive = async (segment) => {
+    // Soft archive
+    const { error } = await supabaseSegments
+      .from("segments")
+      .update({ status: "ARCHIVED" })
+      .eq("id", segment.id);
+    if (!error) {
+      setSegments((prev) => prev.map((s) => s.id === segment.id ? { ...s, status: "ARCHIVED" } : s));
+      setOpenDropdownId(null);
+    } else {
+      alert("Failed to archive segment: " + error.message);
+    }
+  };
+  const handleActivate = async (segment) => {
+    // Activate from archive
+    const { error } = await supabaseSegments
+      .from("segments")
+      .update({ status: "ACTIVE" })
+      .eq("id", segment.id);
+    if (!error) {
+      setSegments((prev) => prev.map((s) => s.id === segment.id ? { ...s, status: "ACTIVE" } : s));
+      setOpenDropdownId(null);
+    } else {
+      alert("Failed to activate segment: " + error.message);
+    }
+  };
+  const handleDelete = async (segment) => {
+    // Soft delete
+    const { error } = await supabaseSegments
+      .from("segments")
+      .update({ is_removed: true })
+      .eq("id", segment.id);
+    if (!error) {
+      setSegments((prev) => prev.filter((s) => s.id !== segment.id));
+      setOpenDropdownId(null);
+    } else {
+      alert("Failed to delete segment: " + error.message);
+    }
+  };
 
   // Fetch segments data with pagination
   useEffect(() => {
@@ -47,7 +103,10 @@ export default function Segments() {
 
         const { data, error, count } = await query.range(start, end);
 
-        if (error) throw error;
+        if (error){
+          toast.error(error.message);
+          return
+        }
 
         const formattedData = data.map((segment) => ({
           ...segment,
@@ -148,12 +207,13 @@ export default function Segments() {
                 <th>Size</th>
                 <th>Last Executed</th>
                 <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredSegments.length > 0 ? (
                 filteredSegments.map((segment) => (
-                  <TableRow key={segment.id} className="hover">
+                  <TableRow key={segment.id} className="hover group">
                     <td
                       className="text-md font-bold cursor-pointer"
                       onClick={() => goToSegmentDetail(segment.id)}
@@ -171,6 +231,37 @@ export default function Segments() {
                       <Badge className="text-xs uppercase">
                         {segment.status}
                       </Badge>
+                    </td>
+                    <td className="relative">
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenDropdownId(segment.id === openDropdownId ? null : segment.id);
+                        }}
+                        className="cursor-pointer opacity-80 hover:opacity-100"
+                        title="Actions"
+                      >
+                        <Icon icon="mdi:dots-vertical" width={20} height={20} />
+                      </span>
+                      {openDropdownId === segment.id && (
+                        <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 shadow-lg rounded z-10">
+                          {segment.status === "ACTIVE" && (
+                            <>
+                             
+                              <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={() => handleArchive(segment)}>Archive</div>
+                            </>
+                          )}
+                          {segment.status === "ARCHIVED" && (
+                            <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={() => handleActivate(segment)}>Activate</div>
+                          )}
+                          {segment.status === "DRAFT" && (
+                            <>
+                             
+                              <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-black" onClick={() => handleDelete(segment)}>Delete</div>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </td>
                   </TableRow>
                 ))

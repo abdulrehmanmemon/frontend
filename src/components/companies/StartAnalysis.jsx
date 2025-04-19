@@ -22,7 +22,7 @@ export default function StartAnalysis() {
     { id: 5, name: "Due Diligence Report Draft" },
   ];
   ;
-  const [selectedAnalysis, setSelectedAnalysis] = useState("10K Analysis");
+  const [selectedAnalysis, setSelectedAnalysis] = useState("1");
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [fileIds, setFileIds] = useState([]);

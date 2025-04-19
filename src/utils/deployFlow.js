@@ -653,14 +653,15 @@ export async function sendConfigurationToBackend(nodes, edges, formData, templat
     const token = localStorage.getItem('sb-access-token');
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/execute_dynamic_workflow`, {
       method: 'POST',
-      headers: { "Content-Type": "application/json" ,
-        Authorization: `Bearer ${token}`
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(requestBody)
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      toast.error(` ${response.status}`);
     }
 
     const result = await response.json();
@@ -703,8 +704,9 @@ export const deleteWorkflowTableIfExists = async () => {
       const token = localStorage.getItem('sb-access-token');
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/delete_workflow_table`, {
         method: 'POST',
-        headers: { "Content-Type": "application/json" ,
-          Authorization: `Bearer ${token}`
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ table_name: currentTable })
       });

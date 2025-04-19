@@ -4,7 +4,6 @@ import 'reactflow/dist/style.css';
 import _ from 'lodash';
 import { BaseNode } from '../templates/Nodes/BaseNode';
 import Start from '../nodes/Start';
-import toast from 'react-hot-toast';
 import Enrich from '../nodes/Enrich';
 import LeadScore from '../nodes/LeadScore';
 import Branch from '../nodes/Branch';
@@ -32,6 +31,7 @@ import Card from "@/components/daisyui/Card/CardBody";
 import { FaMapMarkerAlt, FaIndustry, FaExclamationCircle, FaUser, FaTag, FaBuilding, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import CardBody from '../daisyui/Card/CardBody';
 import Badge from "@/components/daisyui/Badge/Badge";
+import toast from 'react-hot-toast';
 
 const availableNodes = [
   { id: 'enrich', label: 'Enrich', description:"Enriches the lead data by appending additional information."},
@@ -66,7 +66,7 @@ const [cachedResults, setCachedResults] = useState(null);
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error fetching table data:', error);
+      toast.error('Error fetching table data:', error);
       return null;
     }
   };
@@ -75,16 +75,12 @@ const [cachedResults, setCachedResults] = useState(null);
     setActiveTab(tab);
     if (tab === 'results') {
       // Check if any nodes have saved data
-      // if (savedNodes.length === 0) {
-      //   toast.error('No nodes have saved data yet. Please configure and save some nodes first.');
-      //   setActiveTab('editor');
-      //   return;
-      // }
-      if (!allNodesSaved){
-      toast.error('Please configure and save all nodes first');
-      setActiveTab('editor');
-      return;
+      if (!allNodesSaved) {
+        toast.error('Please configure and save nodes first.');
+        setActiveTab('editor');
+        return;
       }
+      
       // Log current and previous form data for debugging
       console.log("Checking for changes...");
       console.log("Previous FormData:", JSON.stringify(previousFormData, null, 2));
@@ -147,7 +143,7 @@ const [cachedResults, setCachedResults] = useState(null);
         setBackendResults(results);
     
         setCachedResults(results);
-       setPreviousFormData({ ...formData });
+       setPreviousFormData(_.cloneDeep(formData));
 
         // Fetch table data if workflow_table is available
         if (results?.workflow_table) {
@@ -157,8 +153,20 @@ const [cachedResults, setCachedResults] = useState(null);
 
         setActiveTab(tab);
       } catch (error) {
-        console.error('Error processing results:', error);
-        alert('Error processing results. Please try again.');
+        toast.error('Error processing results:', error);
+        if (error instanceof TypeError) {
+          toast.error('Backend server is not running. Please start the backend server on port 8000.');
+        } else if (error.message.includes('400')) {
+          toast.error('Invalid workflow configuration. Please check your settings and try again.');
+        } else if (error.message.includes('401')) {
+          toast.error('Unauthorized. Please log in again.');
+        } else if (error.message.includes('403')) {
+          toast.error('You don\'t have permission to perform this action.');
+        } else if (error.message.includes('404')) {
+          toast.error('Resource not found. Please check your configuration.');
+        } else {
+          toast.error('Failed to connect to backend server. Please make sure both frontend and backend servers are running.');
+        }
       } finally {
         setIsLoadingResults(false);
       }
@@ -402,19 +410,10 @@ const handleNodeDataSave = (nodeId, data) => {
     // Update formData reference immediately after state update
     const newFormData = {
       ...formData,
-      [nodeId]: { ...data}
+      [nodeId]: { ...data }
     };
+
     
-    // Force a re-render with the new data
-    setTimeout(() => {
-      setPreviousFormData(prevFormData => {
-        if (!prevFormData || !_.isEqual(prevFormData[nodeId], newFormData[nodeId])) {
-          console.log(`Node data changed for ${nodeId}`);
-          return newFormData;
-        }
-        return prevFormData;
-      });
-    }, 0);
     
     return newDetails;
   });
@@ -739,7 +738,7 @@ const handleNodeDataSave = (nodeId, data) => {
       setCachedResults(null);
          // Validate start node data first
          if (!formData.start || !formData.start.actionName) {
-           alert("Please fill in all required fields in the Start node.");
+           toast.error("Please fill in all required fields in the Start node.");
            return;
          }
    
@@ -761,7 +760,7 @@ const handleNodeDataSave = (nodeId, data) => {
      
          // Step 3: Insert new workflow template
          if (!flowData) {
-           console.error("flowData is undefined!");
+           toast.error("flowData is undefined!");
            return;
          }
          
@@ -773,7 +772,7 @@ const handleNodeDataSave = (nodeId, data) => {
          
          if (workflowError) throw workflowError;
          if (!workflow) {
-           console.error("No workflow found with the given template name.");
+           toast.error("No workflow found with the given template name.");
            return;
          }
          
@@ -930,7 +929,7 @@ const handleNodeDataSave = (nodeId, data) => {
               console.log(formData)
      
       await processNodesSequentially(templateId, workflowId,formData,nodeIdMap);
-      alert(`Workflow ${status === 'active' ? 'deployed' : 'saved as draft'} successfully!`);
+      toast.success(`Workflow ${status === 'active' ? 'deployed' : 'saved as draft'} successfully!`);
       navigate('/actions');
       setStartData({});
     return {
@@ -940,7 +939,19 @@ const handleNodeDataSave = (nodeId, data) => {
     };
     } catch (error) {
       console.error("Save error:", error);
-      throw error;
+      if (error instanceof TypeError) {
+        toast.error('Backend server is not running. Please start the backend server on port 8000.');
+      } else if (error.message.includes('400')) {
+        toast.error('Invalid workflow configuration. Please check your settings and try again.');
+      } else if (error.message.includes('401')) {
+        toast.error('Unauthorized. Please log in again.');
+      } else if (error.message.includes('403')) {
+        toast.error('You don\'t have permission to perform this action.');
+      } else if (error.message.includes('404')) {
+        toast.error('Resource not found. Please check your configuration.');
+      } else {
+        toast.error('Failed to connect to backend server. Please make sure both frontend and backend servers are running.');
+      }
     }
     }
   
@@ -1035,7 +1046,7 @@ const handleNodeDataSave = (nodeId, data) => {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
               onClick={() => handleTabChange('results')}
-              // disabled={!allNodesSaved}
+              disabled={!allNodesSaved}
               title={!allNodesSaved ? 'Please configure and save all nodes first' : ''}
             >
               {isLoadingResults ? (

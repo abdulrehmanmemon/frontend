@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Button from "../../daisyui/Button/Button";
+import toast from "react-hot-toast";
 
 export function UploadDialog({ onUpload, isOpen, setIsOpen }) {
   const [files, setFiles] = useState([]);
@@ -7,7 +8,7 @@ export function UploadDialog({ onUpload, isOpen, setIsOpen }) {
   const handleFileChange = (event) => {
     const selectedFiles = Array.from(event.target.files);
     if (selectedFiles.length !== 3) {
-      alert("Please upload exactly 3 PDF files.");
+      toast.error("Please upload exactly 3 PDF files.");
       return;
     }
     setFiles(selectedFiles);
@@ -16,9 +17,9 @@ export function UploadDialog({ onUpload, isOpen, setIsOpen }) {
   const handleUpload = () => {
     if (files.length === 3) {
       onUpload(files);
-      setIsOpen(false); // Close modal
+      setIsOpen(false); 
     } else {
-      alert("Please upload 3 PDF files.");
+      toast.error("Please upload 3 PDF files.");
     }
   };
 
@@ -35,17 +36,29 @@ export function UploadDialog({ onUpload, isOpen, setIsOpen }) {
           onChange={handleFileChange}
         />
 
-        {/* Display uploaded file names */}
+        {/* Enhanced uploaded file list UI */}
         {files.length > 0 && (
-          <div className="mt-4 p-3 bg-gray-100 rounded">
-            <h4 className="font-semibold">Uploaded Files:</h4>
-            <ul className="list-disc list-inside">
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg border">
+            <h4 className="font-semibold mb-2">Uploaded Files:</h4>
+            <ul className="space-y-2">
               {files.map((file, index) => (
-                <li key={index} className="text-sm text-gray-700">
-                  {file.name}
+                <li key={index} className="flex items-center justify-between bg-white rounded shadow px-3 py-2">
+                  <div className="flex items-center gap-2">
+        
+                    <span className="font-medium text-gray-800">{file.name}</span>
+                    
+                  </div>
+                  <button
+                    className="text-red-500 hover:text-red-700 ml-2 text-xs"
+                    title="Remove file"
+                    onClick={() => setFiles(files.filter((_, i) => i !== index))}
+                  >
+                    Remove
+                  </button>
                 </li>
               ))}
             </ul>
+          
           </div>
         )}
 

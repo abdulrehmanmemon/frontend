@@ -261,7 +261,7 @@ transformSegmentStructure(location.state.segmentStructure)
   
       return null;
     } catch (err) {
-      console.error("Error checking for existing segment:", err);
+      toast.error("Error checking for existing segment:", err);
       return null;
     }
   };
