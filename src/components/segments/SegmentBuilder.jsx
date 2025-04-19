@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabaseSegments } from '../../helpers/supabaseClient';
 import Form from './components/Form';
-import toast from 'react-hot-toast';
 import ConditionGroup from './components/ConditionGroup';
 import OutputTable from './OutputTable';
 import { saveOrDeploySegment } from '../../helpers/savedeploySegments';
@@ -297,29 +296,9 @@ transformSegmentStructure(location.state.segmentStructure)
       };
 
       const newSegmentId = await saveOrDeploySegment(updatedSegment, status);
-
-      if (newSegmentId) {
-        // If status is 'ACTIVE', call the endpoint
-        if (status === 'ACTIVE') {
-          const token = localStorage.getItem('sb-access-token');
-          const baseUrl = import.meta.env.VITE_API_BASE_URL;
-          const response = await fetch(`${baseUrl}/activate_segment`, {
-            method: 'POST',
-            headers: { "Content-Type": "application/json" ,
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({ segment_id: newSegmentId }),
-          });
-
-          if (response.status !== 200) {
-            toast.error('Failed to activate segment');
-          }
-        }
-        toast.success(`Segment Activated Sucessfully`);
-        setExistingSegmentId(newSegmentId);
-        navigate('/segments');
-        return newSegmentId;
-      }
+      setExistingSegmentId(newSegmentId);
+      navigate('/segments');
+      return newSegmentId;
     } catch (error) {
       console.error(`Error ${status === 'ACTIVE' ? 'deploying' : 'saving'} segment:`, error);
       return null;
@@ -369,13 +348,10 @@ transformSegmentStructure(location.state.segmentStructure)
 
   const fetchSegmentSample = async ({ backendConditions }) => {
     try {
-      const token = localStorage.getItem('sb-access-token');
       const baseUrl = import.meta.env.VITE_API_BASE_URL;
       const response = await fetch(`${baseUrl}/get_segment_sample`, {
         method: 'POST',
-        headers: { "Content-Type": "application/json" ,
-          Authorization: `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ segment_info: backendConditions }), 
       });
 

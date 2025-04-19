@@ -650,11 +650,10 @@ export async function sendConfigurationToBackend(nodes, edges, formData, templat
     console.log('🚀 Request Body:', JSON.stringify(requestBody, null, 2));
 
     // Send to backend endpoint
-    const token = localStorage.getItem('sb-access-token');
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/execute_dynamic_workflow`, {
       method: 'POST',
-      headers: { "Content-Type": "application/json" ,
-        Authorization: `Bearer ${token}`
+      headers: {
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(requestBody)
     });
@@ -700,11 +699,10 @@ export const deleteWorkflowTableIfExists = async () => {
   if (currentTable) {
     try {
       console.log('🗑️ Deleting workflow table:', currentTable);
-      const token = localStorage.getItem('sb-access-token');
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/delete_workflow_table`, {
         method: 'POST',
-        headers: { "Content-Type": "application/json" ,
-          Authorization: `Bearer ${token}`
+        headers: {
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ table_name: currentTable })
       });

@@ -21,13 +21,11 @@ console.log(fileIds);
       setLoading(false);
       return;
     }
-    const token = localStorage.getItem('sb-access-token');
+
     const baseUrl = import.meta.env.VITE_API_BASE_URL;
     fetch(`${baseUrl}/extract_metrics`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" ,
-        Authorization: `Bearer ${token}`
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ file_ids: fileIds }),
     })
       .then((response) => {
