@@ -8,10 +8,11 @@ const RenderTable = ({ columns, data, renderActions, onRowClick, workflowConfig 
 
     if (workflowConfig) {
       try {
+        const token = localStorage.getItem('sb-access-token');
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/execute_dynamic_workflow`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+          headers: { "Content-Type": "application/json" ,
+            Authorization: `Bearer ${token}`
           },
           body: JSON.stringify({
             workflow_json: workflowConfig

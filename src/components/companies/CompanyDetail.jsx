@@ -7,7 +7,7 @@ import Badge from "@/components/daisyui/Badge/Badge";
 import CardBody from "../daisyui/Card/CardBody";
 import RatiosChart from "./styling/RatiosChart";
 import MetricCard from "./styling/MetricCard";
-import toast from 'react-hot-toast';
+
 
 import { FaMapMarkerAlt, FaIndustry, FaExclamationCircle, FaUser, FaTag, FaBuilding } from "react-icons/fa";
 
@@ -24,27 +24,21 @@ const CompanyDetail = () => {
   const [equity,setEquity]=useState([]);
   const [assets,setAssets]=useState([]);
   const [ebitda,setEbitda]=useState([]);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchCompany = async () => {
-      try {
-        const { data, error } = await supabaseCompanies
-          .from("company")
-          .select("*")
-          .eq("company_id", id)
-          .single();
+      const { data, error } = await supabaseCompanies
+        .from("company")
+        .select("*")
+        .eq("company_id", id)
+        .single();
 
-        if (error) throw error;
+      if (error) {
+        console.error("Error fetching company:", error);
+      } else {
         setCompany(data);
-        setError(null);
-      } catch (err) {
-        setError(err.message);
-        toast.error('Error fetching company details. Please try again later.');
-        console.error('Error fetching company:', err);
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
 
     fetchCompany();
@@ -57,9 +51,12 @@ const CompanyDetail = () => {
     const fetchDerivedMetrics = async () => {
       setFinancialLoading(true);
       try {
+        const token = localStorage.getItem('sb-access-token');
         const response = await fetch(`${baseUrl}/derived_metrics`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" ,
+            Authorization: `Bearer ${token}`
+          },
           body: JSON.stringify({ company_id: company.company_id }),
         });
 
@@ -152,9 +149,7 @@ const CompanyDetail = () => {
           setEbitda([]);
         }
       } catch (error) {
-        setError(error.message);
-        toast.error('Error fetching derived metrics. Please try again later.');
-        console.error('Error fetching derived metrics:', error);
+        console.error("Error fetching derived metrics:", error);
         setRatiosData([]);
         setCurrentRatio("N/A");
         setDaysSales([]);
@@ -176,16 +171,6 @@ const CompanyDetail = () => {
         <div>Loading...</div>
       </div>
     );
-
-  if (error) {
-    return (
-      <div className="container mx-auto p-4">
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
-          {error}
-        </div>
-      </div>
-    );
-  }
 
   if (!company) return <div className="text-center mt-10">Company not found.</div>;
     console.log(currentRatio)

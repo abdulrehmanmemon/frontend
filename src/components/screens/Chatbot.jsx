@@ -23,9 +23,12 @@ const Chatbot = () => {
   
       try {
         const baseUrl = import.meta.env.VITE_API_BASE_URL;
+        const token = localStorage.getItem('sb-access-token');
         const response = await fetch(`${baseUrl}/execute_langflow_api`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" ,
+            Authorization: `Bearer ${token}`
+          },
           body: JSON.stringify({ input_text: input }),
         });
   
